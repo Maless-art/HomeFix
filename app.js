@@ -23,6 +23,7 @@ let route = { screen: "home", areaId: null, itemId: null };
 let currentModal = null;
 let itemFilter = "all";
 let searchTerm = "";
+let recentExpanded = false;
 
 const CATEGORIES = [
   { id:"Climatización", icon:"❄️", label:"Climatización" },
@@ -49,6 +50,28 @@ function normalizeData(raw){
   d.areas = Array.isArray(d.areas) ? d.areas : [];
   d.items = Array.isArray(d.items) ? d.items : [];
   d.records = Array.isArray(d.records) ? d.records : [];
+
+  // Migración visual/estructural sin borrar datos existentes:
+  // Sala + Comedor pasan a ser una sola área y se agrega Habitación 2.
+  const sala = d.areas.find(a => normalizeText(a.name) === "sala");
+  const comedor = d.areas.find(a => normalizeText(a.name) === "comedor");
+  if(sala){
+    sala.name = "Sala-Comedor";
+    sala.icon = "🛋️";
+    if(comedor){
+      d.items = d.items.map(item => item.areaId === comedor.id ? { ...item, areaId:sala.id } : item);
+      d.areas = d.areas.filter(a => a.id !== comedor.id);
+    }
+  } else if(comedor){
+    comedor.name = "Sala-Comedor";
+    comedor.icon = "🛋️";
+  } else if(!d.areas.some(a => normalizeText(a.name) === "sala-comedor")){
+    d.areas.unshift({ id:crypto.randomUUID(), name:"Sala-Comedor", icon:"🛋️" });
+  }
+  if(!d.areas.some(a => normalizeText(a.name) === "habitacion 2")){
+    d.areas.push({ id:crypto.randomUUID(), name:"Habitación 2", icon:"🛏️" });
+  }
+
   d.items = d.items.map(i => {
     const item = { ...i };
     const air = isAir(item);
@@ -181,8 +204,8 @@ function renderDashboard(){
         <span class="kpi"><i class="dot ${stateCls}"></i><small>Estado</small><b>${health}%</b></span>
         <span class="kpi ${pendingCls}"><i>🔧</i><small>Pendientes</small><b>${pending}</b></span>
         <span class="kpi ${nextCls}"><i>❄️</i><small>Próximo</small><b>${nextMain}</b></span>
-        <span class="kpi"><i>💰</i><small>Año</small><b>${money(year)}</b></span>
-        <span class="kpi"><i>📊</i><small>Hist.</small><b>${money(total)}</b></span>
+        <span class="kpi"><i>📅</i><small>Mes</small><b>${money(month)}</b></span>
+        <span class="kpi"><i>📆</i><small>Año</small><b>${money(year)}</b></span>
       </div>
       <div class="hero-context">${next ? "Próximo mantenimiento:" : ""} <b>${nextDetail}</b> <span>${money(month)} mes</span></div>
     </section>`;
@@ -222,16 +245,20 @@ function itemCard(i){
 }
 function recentActivity(){
   const recent = data.records.map(r=>({r,item:data.items.find(i=>i.id===r.itemId)})).filter(x=>x.item).sort((a,b)=>b.r.date.localeCompare(a.r.date)).slice(0,3);
-  if(!recent.length) return "";
+  if(!recent.length) return `<div class="empty compact-empty">Todavía no hay actividad registrada.</div>`;
   return `<section class="recent"><div class="section-title mini"><h2>Actividad reciente</h2><button onclick="route={screen:'timeline'};render()">Ver historial</button></div>${recent.map(x=>`<div class="recent-row"><span>✓ ${x.r.type}</span><b>${x.item.name}</b><em>${fmtDate(x.r.date)}</em></div>`).join("")}</section>`;
 }
+function toggleRecentActivity(){ recentExpanded = !recentExpanded; render(); }
 
 function renderHome(){
   const filteredItems = data.items.filter(itemMatchesFilter);
   $("view").innerHTML = `
     ${renderFilters()}
     ${itemFilter !== "all" || searchTerm ? `<div class="section-title"><h2>Artículos filtrados</h2></div><div class="grid">${filteredItems.length ? filteredItems.map(itemCard).join("") : `<div class="empty">No hay artículos con ese filtro.</div>`}</div>` : ""}
-    ${recentActivity()}
+    <button class="activity-toggle" onclick="toggleRecentActivity()" aria-expanded="${recentExpanded}">
+      <span>🕘 Actividad reciente</span><b>${recentExpanded ? "Ocultar" : "Mostrar"}</b>
+    </button>
+    ${recentExpanded ? recentActivity() : ""}
     <div class="section-title"><h2>Áreas de la casa</h2><button onclick="openAreaForm()">+ Área</button></div>
     <div class="grid">${data.areas.map(a=>`
       <article class="card" onclick="goArea('${a.id}')">
@@ -271,7 +298,18 @@ function renderItem(){
 }
 function renderTimeline(){
   const all = data.records.map(r=>({r,item:data.items.find(i=>i.id===r.itemId)})).filter(x=>x.item && itemMatchesFilter(x.item)).sort((a,b)=>b.r.date.localeCompare(a.r.date));
-  $("view").innerHTML = `${renderFilters()}<div class="section-title"><h2>Línea de tiempo</h2></div><div class="timeline">${all.length ? all.map(x=>`<div class="time-item"><b>${fmtDate(x.r.date)} · ${x.r.type}</b><p>${x.item.name} · ${areaName(x.item.areaId)}</p><p class="money">${money(x.r.amount)}</p><p>${x.r.summary || "Sin resumen"}</p></div>`).join("") : `<div class="empty">No hay registros con ese filtro.</div>`}</div>`;
+  const total = data.records.reduce((s,r)=>s+Number(r.amount||0),0);
+  const month = data.records.filter(r=>matchFilter(r.date,"month")).reduce((s,r)=>s+Number(r.amount||0),0);
+  const year = data.records.filter(r=>matchFilter(r.date,"year")).reduce((s,r)=>s+Number(r.amount||0),0);
+  $("view").innerHTML = `
+    <section class="history-summary">
+      <div><small>Histórico global</small><strong>${money(total)}</strong></div>
+      <span>Mes: <b>${money(month)}</b></span>
+      <span>Año: <b>${money(year)}</b></span>
+    </section>
+    ${renderFilters()}
+    <div class="section-title"><h2>Línea de tiempo</h2></div>
+    <div class="timeline">${all.length ? all.map(x=>`<div class="time-item"><b>${fmtDate(x.r.date)} · ${x.r.type}</b><p>${x.item.name} · ${areaName(x.item.areaId)}</p><p class="money">${money(x.r.amount)}</p><p>${x.r.summary || "Sin resumen"}</p></div>`).join("") : `<div class="empty">No hay registros con ese filtro.</div>`}</div>`;
 }
 function renderSettings(){
   $("view").innerHTML = `<div class="section-title"><h2>Datos y respaldo</h2></div><article class="card"><p>Guarda un respaldo JSON para no perder tu historial.</p><div class="settings-actions"><button class="btn" onclick="exportBackup()">Exportar respaldo</button><button class="btn secondary" onclick="$('importFile').click()">Importar respaldo</button><button class="btn danger" onclick="resetApp()">Reiniciar app</button></div></article>`;

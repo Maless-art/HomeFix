@@ -1,4 +1,4 @@
-const CACHE = "homefix-cache-v1.5.1";
+const CACHE = "homefix-cache-v1.5.2";
 const ASSETS = [
   "./",
   "./index.html",

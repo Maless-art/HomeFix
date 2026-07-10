@@ -242,3 +242,37 @@ h1{font-size:25px;margin:0;letter-spacing:-.5px}.brand p{margin:2px 0 0;color:va
   .hero-context{font-size:9.5px;text-align:center}
   .area-title h2{font-size:20px}
 }
+
+/* HomeFix v1.5.2 - menos ruido visual y resumen histórico */
+.activity-toggle{
+  width:100%;
+  border:1px solid var(--line);
+  background:var(--card);
+  border-radius:16px;
+  padding:12px 14px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  color:var(--text);
+  font-size:14px;
+  font-weight:850;
+  box-shadow:var(--shadow);
+}
+.activity-toggle b{color:var(--blue-dark);font-size:12px}
+.compact-empty{padding:14px;font-size:12px}
+.history-summary{
+  background:linear-gradient(135deg,var(--blue-soft),#f7fcff);
+  border:1px solid var(--blue-line);
+  border-radius:20px;
+  padding:14px;
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:6px 14px;
+  align-items:center;
+  box-shadow:0 10px 24px rgba(2,132,199,.10);
+}
+.history-summary div{grid-row:1 / 3}
+.history-summary small{display:block;color:var(--muted);font-size:11px;margin-bottom:3px}
+.history-summary strong{font-size:25px;color:var(--blue-dark)}
+.history-summary span{font-size:12px;color:var(--muted);text-align:right}
+.history-summary span b{color:var(--text)}
