@@ -3,16 +3,16 @@ const $ = (id) => document.getElementById(id);
 
 const defaultData = {
   areas: [
-    { id: crypto.randomUUID(), name: "Sala", icon: "🛋️" },
-    { id: crypto.randomUUID(), name: "Cocina", icon: "🍳" },
-    { id: crypto.randomUUID(), name: "Comedor", icon: "🍽️" },
+    { id: crypto.randomUUID(), name: "Sala-Comedor", icon: "🛋️" },
     { id: crypto.randomUUID(), name: "Habitación principal", icon: "🛏️" },
+    { id: crypto.randomUUID(), name: "Habitación 2", icon: "🛏️" },
     { id: crypto.randomUUID(), name: "Habitación Manuelito", icon: "🧸" },
     { id: crypto.randomUUID(), name: "Baño", icon: "🚿" },
-    { id: crypto.randomUUID(), name: "Terraza", icon: "🌿" },
-    { id: crypto.randomUUID(), name: "Patio", icon: "🌳" },
+    { id: crypto.randomUUID(), name: "Cocina", icon: "🍳" },
     { id: crypto.randomUUID(), name: "Lavandería", icon: "🧺" },
-    { id: crypto.randomUUID(), name: "Garaje", icon: "🚗" }
+    { id: crypto.randomUUID(), name: "Garaje", icon: "🚗" },
+    { id: crypto.randomUUID(), name: "Terraza", icon: "🌿" },
+    { id: crypto.randomUUID(), name: "Patio", icon: "🌳" }
   ],
   items: [],
   records: []
@@ -71,6 +71,31 @@ function normalizeData(raw){
   if(!d.areas.some(a => normalizeText(a.name) === "habitacion 2")){
     d.areas.push({ id:crypto.randomUUID(), name:"Habitación 2", icon:"🛏️" });
   }
+
+  // Orden natural de recorrido: interior de la casa hacia las áreas exteriores.
+  // Se conservan los mismos ID, por lo que artículos e historial no se alteran.
+  const areaOrder = [
+    "sala-comedor",
+    "habitacion principal",
+    "habitacion 2",
+    "habitacion manuelito",
+    "bano",
+    "cocina",
+    "lavanderia",
+    "garaje",
+    "terraza",
+    "patio"
+  ];
+  d.areas = d.areas
+    .map((area, originalIndex) => ({ area, originalIndex }))
+    .sort((a, b) => {
+      const aIndex = areaOrder.indexOf(normalizeText(a.area.name));
+      const bIndex = areaOrder.indexOf(normalizeText(b.area.name));
+      const aRank = aIndex === -1 ? areaOrder.length + a.originalIndex : aIndex;
+      const bRank = bIndex === -1 ? areaOrder.length + b.originalIndex : bIndex;
+      return aRank - bRank;
+    })
+    .map(entry => entry.area);
 
   d.items = d.items.map(i => {
     const item = { ...i };
