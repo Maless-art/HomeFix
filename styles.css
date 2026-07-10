@@ -157,3 +157,88 @@ h1{font-size:25px;margin:0;letter-spacing:-.5px}.brand p{margin:2px 0 0;color:va
   .kpi small{font-size:9px}.kpi b{font-size:10px;white-space:nowrap}
   .hero-context{text-align:center;font-size:10px}
 }
+
+
+/* HomeFix v1.5.1 - correcciones responsive visuales */
+.hero-strip{
+  padding:7px 8px;
+  gap:5px;
+}
+.hero-kpis{
+  display:grid;
+  grid-template-columns:repeat(6,minmax(0,1fr));
+  gap:5px;
+}
+.kpi{
+  grid-column:span 2;
+  min-width:0;
+  min-height:32px;
+  padding:5px 6px;
+  border:1px solid rgba(27,117,170,.12);
+  border-radius:10px;
+  background:rgba(255,255,255,.5);
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr);
+  grid-template-rows:auto auto;
+  column-gap:5px;
+  row-gap:0;
+  justify-content:initial;
+  text-align:left;
+}
+.kpi:nth-child(4),.kpi:nth-child(5){grid-column:span 3}
+.kpi i{grid-row:1 / 3;font-size:12px}
+.kpi small{
+  min-width:0;
+  font-size:9px;
+  line-height:1;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.kpi b{
+  min-width:0;
+  max-width:100%;
+  font-size:11px;
+  line-height:1.05;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.hero-context{
+  padding-top:5px;
+  font-size:10px;
+  line-height:1.2;
+}
+
+.area-page{
+  width:100%;
+  min-width:0;
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  gap:12px;
+}
+.area-page > *{min-width:0;width:100%}
+.area-title{margin:10px 2px 0}
+.area-filter{display:block;width:100%;min-width:0}
+.area-filter .filter-card{width:100%;min-width:0}
+.area-filter .chips{
+  width:100%;
+  display:flex;
+  flex-direction:row;
+  flex-wrap:nowrap;
+  overflow-x:auto;
+  overflow-y:hidden;
+}
+.area-total{grid-column:1!important;width:100%}
+.area-items{width:100%;min-width:0}
+
+@media(max-width:430px){
+  .hero-strip{padding:6px;gap:4px}
+  .hero-kpis{gap:4px}
+  .kpi{min-height:30px;padding:4px 5px;column-gap:4px}
+  .kpi i{font-size:11px}
+  .kpi small{font-size:8.5px}
+  .kpi b{font-size:10px}
+  .hero-context{font-size:9.5px;text-align:center}
+  .area-title h2{font-size:20px}
+}

@@ -243,10 +243,12 @@ function renderArea(){
   const area = data.areas.find(a=>a.id===route.areaId);
   const items = data.items.filter(i=>i.areaId===route.areaId && itemMatchesFilter(i));
   $("view").innerHTML = `
-    <div class="section-title"><button onclick="goHome()">← Casa</button><h2>${area?.icon || "🏠"} ${area?.name || "Área"}</h2><button onclick="openItemForm()">+ Elemento</button></div>
-    <div class="stat wide"><small>Total histórico del área</small><strong>${money(areaTotal(route.areaId))}</strong></div>
-    ${renderFilters()}
-    <div class="grid">${items.length ? items.map(itemCard).join("") : `<div class="empty">No hay elementos con ese filtro en esta área.</div>`}</div>`;
+    <section class="area-page">
+      <div class="section-title area-title"><button onclick="goHome()">← Casa</button><h2>${area?.icon || "🏠"} ${area?.name || "Área"}</h2><button onclick="openItemForm()">+ Elemento</button></div>
+      <div class="area-filter">${renderFilters()}</div>
+      <div class="stat wide area-total"><small>Total histórico del área</small><strong>${money(areaTotal(route.areaId))}</strong></div>
+      <div class="grid area-items">${items.length ? items.map(itemCard).join("") : `<div class="empty">No hay elementos con ese filtro en esta área.</div>`}</div>
+    </section>`;
 }
 function renderItem(){
   const item = data.items.find(i=>i.id===route.itemId);
